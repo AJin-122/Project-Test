@@ -109,7 +109,7 @@ public class BaseController : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
         UpdateController();
     }

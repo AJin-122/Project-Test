@@ -4,6 +4,7 @@ public class BaseController : MonoBehaviour
 {
     public int Id { get; set; }
     StatInfo _stat = new StatInfo();
+    ObjectInfo _info;
 
     public virtual StatInfo Stat
     {
@@ -15,6 +16,8 @@ public class BaseController : MonoBehaviour
             _stat = value;
         }
     }
+
+    public virtual ObjectInfo Info { get; set; } = new ObjectInfo();
 
     public virtual float ChangeCooltime
     {
@@ -78,7 +81,7 @@ public class BaseController : MonoBehaviour
         }
     }
 
-    void Start()
+    void Awake()
     {
         Init();
     }
@@ -91,6 +94,19 @@ public class BaseController : MonoBehaviour
         this._boxCollider2D = this.GetComponent<BoxCollider2D>();
 
         UpdateAnimation();
+    }
+
+    public virtual bool Active
+    {
+        get { return this._spriteRenderer.enabled && this._rigidbody2D.simulated; }
+        set
+        {
+            if (_spriteRenderer == null || _rigidbody2D == null)
+                return;
+
+            this._spriteRenderer.enabled = value;
+            this._rigidbody2D.simulated = value;
+        }
     }
 
     void Update()

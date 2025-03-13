@@ -5,6 +5,7 @@ public class BaseController : MonoBehaviour
     public int Id { get; set; }
     StatInfo _stat = new StatInfo();
     ObjectInfo _info;
+    PosInfo _posInfo = new PosInfo();
 
     public virtual StatInfo Stat
     {
@@ -25,7 +26,7 @@ public class BaseController : MonoBehaviour
         set { Stat.changeCooltime = value; }
     }
 
-    PosInfo _posInfo = new PosInfo();
+
     public PosInfo PosInfo
     {
         get { return _posInfo; }
@@ -33,19 +34,19 @@ public class BaseController : MonoBehaviour
         {
             if (_posInfo.Equals(value))
                 return;
-            PosInfo = value;
+            _posInfo = value;
         }
     }
 
-    protected Animator _animator;
-    protected SpriteRenderer _spriteRenderer;
-    protected Rigidbody2D _rigidbody2D;
-    protected BoxCollider2D _boxCollider2D;
+    Animator _animator;
+    SpriteRenderer _spriteRenderer;
+    Rigidbody2D _rigidbody2D;
+    BoxCollider2D _boxCollider2D;
 
-    public SpriteRenderer SpriteRenderer
-    {
-        get { return _spriteRenderer; }
-    }
+    public Animator Animator { get { return _animator; }}
+    public SpriteRenderer SpriteRenderer{ get { return _spriteRenderer; }}
+    public Rigidbody2D Rigidbody2D { get { return _rigidbody2D; }}
+    public BoxCollider2D BoxCollider2D { get { return _boxCollider2D; }}
 
     public virtual CreatureState State
     {

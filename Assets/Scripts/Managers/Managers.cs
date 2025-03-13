@@ -8,8 +8,10 @@ public class Managers : MonoBehaviour
 
     #region Contents
     ObjectManager _obj = new ObjectManager();
+    PlayerManager _playerManager = new PlayerManager();
 
     public static ObjectManager Object { get { return Instance._obj; } }
+    public static PlayerManager PlayerManager { get { return Instance._playerManager; } }
     #endregion
 
     #region Core
@@ -21,7 +23,7 @@ public class Managers : MonoBehaviour
     public static SceneManagerEx Scene { get { return Instance._scene; } }
     #endregion
 
-    void Start()
+    void Awake()
     {
         Init();
     }
@@ -46,6 +48,8 @@ public class Managers : MonoBehaviour
             DontDestroyOnLoad(go);
             s_instance = go.GetComponent<Managers>();
         }
+
+        PlayerManager.Init();
     }
 
     public static void Clear()

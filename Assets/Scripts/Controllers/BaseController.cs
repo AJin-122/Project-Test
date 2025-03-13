@@ -3,50 +3,58 @@ using UnityEngine;
 public class BaseController : MonoBehaviour
 {
     public int Id { get; set; }
-    StatInfo _stat = new StatInfo();
-    ObjectInfo _info;
-    PosInfo _posInfo = new PosInfo();
+    private StatInfo _stat = new();
+    private ObjectInfo _info = new();
+    private PosInfo _posInfo = new();
 
     public virtual StatInfo Stat
     {
-        get { return _stat; }
+        get => _stat;
         set
         {
-            if (_stat.Equals(value))
-                return;
+            if (value == null) return;
+            if (_stat.Equals(value)) return;
             _stat = value;
         }
     }
 
-    public virtual ObjectInfo Info { get; set; } = new ObjectInfo();
-
-    public virtual float ChangeCooltime
+    public virtual ObjectInfo Info
     {
-        get { return Stat.changeCooltime; }
-        set { Stat.changeCooltime = value; }
+        get => _info;
+        set
+        {
+            if (value == null) return;
+            if (_info.Equals(value)) return;
+            _info = value;
+        }
     }
-
 
     public PosInfo PosInfo
     {
-        get { return _posInfo; }
+        get => _posInfo;
         set
         {
-            if (_posInfo.Equals(value))
-                return;
+            if (value == null) return;
+            if (_posInfo.Equals(value)) return;
             _posInfo = value;
         }
     }
 
-    Animator _animator;
-    SpriteRenderer _spriteRenderer;
-    Rigidbody2D _rigidbody2D;
-    BoxCollider2D _boxCollider2D;
+    public virtual float ChangeCooltime
+    {
+        get => Stat.changeCooltime;
+        set => Stat.changeCooltime = value;
+    }
 
-    public Animator Animator { get { return _animator; }}
-    public SpriteRenderer SpriteRenderer{ get { return _spriteRenderer; }}
-    public Rigidbody2D Rigidbody2D { get { return _rigidbody2D; }}
-    public BoxCollider2D BoxCollider2D { get { return _boxCollider2D; }}
+    private Animator _animator;
+    private SpriteRenderer _spriteRenderer;
+    private Rigidbody2D _rigidbody2D;
+    private BoxCollider2D _boxCollider2D;
+
+    public Animator Animator => _animator;
+    public SpriteRenderer SpriteRenderer => _spriteRenderer;
+    public Rigidbody2D Rigidbody2D => _rigidbody2D;
+    public BoxCollider2D BoxCollider2D => _boxCollider2D;
 
     public virtual CreatureState State
     {
@@ -82,32 +90,23 @@ public class BaseController : MonoBehaviour
         }
     }
 
-    void Awake()
+    private void Awake()
     {
+        CacheComponents();
         Init();
+    }
+
+    private void CacheComponents()
+    {
+        if (_animator == null) _animator = GetComponent<Animator>();
+        if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
+        if (_rigidbody2D == null) _rigidbody2D = GetComponent<Rigidbody2D>();
+        if (_boxCollider2D == null) _boxCollider2D = GetComponent<BoxCollider2D>();
     }
 
     protected virtual void Init()
     {
-        this._animator = this.GetComponent<Animator>();
-        this._spriteRenderer = this.GetComponent<SpriteRenderer>();
-        this._rigidbody2D = this.GetComponent<Rigidbody2D>();
-        this._boxCollider2D = this.GetComponent<BoxCollider2D>();
-
         UpdateAnimation();
-    }
-
-    public virtual bool Active
-    {
-        get { return this._spriteRenderer.enabled && this._rigidbody2D.simulated; }
-        set
-        {
-            if (_spriteRenderer == null || _rigidbody2D == null)
-                return;
-
-            this._spriteRenderer.enabled = value;
-            this._rigidbody2D.simulated = value;
-        }
     }
 
     void FixedUpdate()
@@ -136,16 +135,21 @@ public class BaseController : MonoBehaviour
         }
     }
 
-    // ÀÌµ¿ °¡´ÉÇÑ »óÅÂ ÀÏ ¶§ ½ÇÁ¦ ÁÂÇ¥¸¦ ÀÌµ¿
+    // ì´ë™ ë°©í–¥ìœ¼ë¡œ ëª©í‘œ ì§€ì ê¹Œì§€ ì´ë™
     protected virtual void UpdateIdle()
     {
 
     }
 
-    // ºÎµå·´°Ô ÀÌµ¿ Ã³¸®
+    // ì…ë ¥ë°›ì€ ì´ë™ ì²˜ë¦¬
     protected virtual void UpdateMoving()
     {
+        // InputManagerë¥¼ í†µí•œ ì´ë™ ì²˜ë¦¬
+        Rigidbody2D.linearVelocity = Managers.Input.MoveInput * 5f; // ê¸°ë³¸ ì´ë™ ì†ë„ 5
 
+        // ì´ë™ ë°©í–¥ì— ë”°ë¼ ìŠ¤í”„ë¼ì´íŠ¸ ë°©í–¥ ì „í™˜
+        if (Managers.Input.MoveInput.x != 0)
+            SpriteRenderer.flipX = Managers.Input.MoveInput.x < 0;
     }
 
     protected virtual void UpdateSkill()

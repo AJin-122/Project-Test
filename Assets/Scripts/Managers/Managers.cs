@@ -18,9 +18,11 @@ public class Managers : MonoBehaviour
     PoolManager _pool = new PoolManager();
     ResourceManager _resource = new ResourceManager();
     SceneManagerEx _scene = new SceneManagerEx();
+    InputManager _input = new InputManager();
     public static PoolManager Pool { get { return Instance._pool; } }
     public static ResourceManager Resource { get { return Instance._resource; } }
     public static SceneManagerEx Scene { get { return Instance._scene; } }
+    public static InputManager Input { get { return Instance._input; } }
     #endregion
 
     void Awake()
@@ -31,23 +33,23 @@ public class Managers : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        _input.OnUpdate();
+        _playerManager.OnUpdate();
     }
 
     static void Init()
     {
-        if (s_instance == null)
-        {
-            GameObject go = GameObject.Find("@Managers");
-            if (go == null)
-            {
-                go = new GameObject { name = "@Managers" };
-                go.AddComponent<Managers>();
-            }
+        if (s_instance != null) return;
 
-            DontDestroyOnLoad(go);
-            s_instance = go.GetComponent<Managers>();
+        GameObject go = GameObject.Find("@Managers");
+        if (go == null)
+        {
+            go = new GameObject { name = "@Managers" };
+            go.AddComponent<Managers>();
         }
+
+        DontDestroyOnLoad(go);
+        s_instance = go.GetComponent<Managers>();
 
         PlayerManager.Init();
     }

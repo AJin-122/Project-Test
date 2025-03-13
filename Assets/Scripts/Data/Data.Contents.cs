@@ -1,12 +1,28 @@
 using System;
 using UnityEngine;
 
-public class ObjectInfo
+public class ObjectInfo : IEquatable<ObjectInfo>
 {
     public string name;
     public PosInfo posInfo;
     public StatInfo statInfo;
     public GameObjectType objectType;
+
+    public bool Equals(ObjectInfo other)
+    {
+        if (other == null) return false;
+        return name == other.name &&
+               posInfo.Equals(other.posInfo) &&
+               statInfo.Equals(other.statInfo) &&
+               objectType == other.objectType;
+    }
+
+    public override bool Equals(object obj) => Equals(obj as ObjectInfo);
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(name, posInfo, statInfo, objectType);
+    }
 }
 
 public class StatInfo : IEquatable<StatInfo>
@@ -17,7 +33,7 @@ public class StatInfo : IEquatable<StatInfo>
     public int maxSp;
     public float changeCooltime;
 
-    // IEquatable<T> ÀÎÅÍÆäÀÌ½º ±¸Çö
+    // IEquatable<T> ì¸í„°í˜ì´ìŠ¤ êµ¬í˜„
     public bool Equals(StatInfo other)
     {
         if (other == null) return false;
@@ -50,7 +66,6 @@ public class PosInfo : IEquatable<PosInfo>
 
     public override int GetHashCode() => HashCode.Combine(state, pos);
 }
-
 
 public enum CreatureState
 {

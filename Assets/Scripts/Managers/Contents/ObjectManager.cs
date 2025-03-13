@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class ObjectManager
 {
-    public PlayerController Player { get; set; }
     Dictionary<int, BaseController> _objects = new Dictionary<int, BaseController>();
     int _counter = 0;
 
@@ -29,11 +28,6 @@ public class ObjectManager
         switch (bc.Info.objectType)
         {
             case GameObjectType.Player:
-                _objects.Add(bc.Id, bc as PlayerController);
-                GameObject go = Managers.Resource.Instantiate("Creature/Player");
-                PlayerController pc = go.GetOrAddComponent<PlayerController>();
-                pc = bc as PlayerController;
-                go.transform.position = pc.Info.posInfo.pos;
 
                 break;
         }
@@ -43,8 +37,6 @@ public class ObjectManager
 
     public void Remove(int id)
     {
-        if (Player != null && Player.Id == id)
-            return;
         if (_objects.ContainsKey(id) == false)
             return;
 
@@ -54,15 +46,6 @@ public class ObjectManager
 
         _objects.Remove(id);
         Managers.Resource.Destroy(bc.gameObject);
-    }
-
-    public void RemoveMyPlayer()
-    {
-        if (Player == null)
-            return;
-
-        Remove(Player.Id);
-        Player = null;
     }
 
     public BaseController FindById(int id)
@@ -103,6 +86,5 @@ public class ObjectManager
             Managers.Resource.Destroy(bc.gameObject);
 
         _objects.Clear();
-        Player = null;
     }
 }

@@ -100,6 +100,7 @@ public class PlayerManager
         if (Managers.Input.IsPlayerSwitchPressed)
         {
             ChangePlayer();
+            Debug.Log("현재 활성화 플레이어: " + CurrentPlayer.name);
         }
     }
 }

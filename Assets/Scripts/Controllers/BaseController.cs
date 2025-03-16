@@ -109,7 +109,7 @@ public class BaseController : MonoBehaviour
         UpdateAnimation();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         UpdateController();
     }
@@ -136,29 +136,12 @@ public class BaseController : MonoBehaviour
     }
 
     // 이동 방향으로 목표 지점까지 이동
-    protected virtual void UpdateIdle()
-    {
-
-    }
+    protected virtual void UpdateIdle(){}
 
     // 입력받은 이동 처리
-    protected virtual void UpdateMoving()
-    {
-        // InputManager를 통한 이동 처리
-        Rigidbody2D.linearVelocity = Managers.Input.MoveInput * 5f; // 기본 이동 속도 5
+    protected virtual void UpdateMoving(){}
 
-        // 이동 방향에 따라 스프라이트 방향 전환
-        if (Managers.Input.MoveInput.x != 0)
-            SpriteRenderer.flipX = Managers.Input.MoveInput.x < 0;
-    }
+    protected virtual void UpdateSkill(){}
 
-    protected virtual void UpdateSkill()
-    {
-
-    }
-
-    protected virtual void UpdateDead()
-    {
-
-    }
+    protected virtual void UpdateDead(){}
 }

@@ -1,15 +1,45 @@
 using UnityEngine;
 
-public class Player1Controller : PlayerController
+public class PlayerController : CreatureController
 {
+    [SerializeField] protected float m_speed = 1.0f;
+    [SerializeField] protected float m_jumpForce = 7.5f;
+    [SerializeField] protected float m_rollForce = 6.0f;
+    [SerializeField] protected bool m_noBlood = false;
+    [SerializeField] protected GameObject m_slideDust;
+
+    protected Sensor_HeroKnight m_groundSensor;
+    protected Sensor_HeroKnight m_wallSensorR1;
+    protected Sensor_HeroKnight m_wallSensorR2;
+    protected Sensor_HeroKnight m_wallSensorL1;
+    protected Sensor_HeroKnight m_wallSensorL2;
+    protected bool m_isWallSliding = false;
+    protected bool m_grounded = false;
+    protected bool m_rolling = false;
+    protected int m_facingDirection = 1;
+    protected int m_currentAttack = 0;
+    protected float m_timeSinceAttack = 0.0f;
+    protected float m_delayToIdle = 0.0f;
+    protected float m_rollDuration = 8.0f / 14.0f;
+    protected float m_rollCurrentTime;
 
     protected override void Init()
     {
         base.Init();
+
+        m_groundSensor = Util.FindChild(this.gameObject, "GroundSensor").GetComponent<Sensor_HeroKnight>();
+        m_wallSensorR1 = Util.FindChild(this.gameObject, "WallSensor_R1").GetComponent<Sensor_HeroKnight>();
+        m_wallSensorR2 = Util.FindChild(this.gameObject, "WallSensor_R2").GetComponent<Sensor_HeroKnight>();
+        m_wallSensorL1 = Util.FindChild(this.gameObject, "WallSensor_L1").GetComponent<Sensor_HeroKnight>();
+        m_wallSensorL2 = Util.FindChild(this.gameObject, "WallSensor_L2").GetComponent<Sensor_HeroKnight>();
     }
 
     protected override void UpdateController()
     {
+        // 현재 활성화된 플레이어가 아니면 업데이트하지 않음
+        if (gameObject != Managers.PlayerManager.CurrentPlayer)
+            return;
+
         base.UpdateController();
 
         // Increase timer that controls attack combo
@@ -37,8 +67,14 @@ public class Player1Controller : PlayerController
             Animator.SetBool("Grounded", m_grounded);
         }
 
-        // -- Handle input and movement --
-        float inputX = Input.GetAxis("Horizontal");
+        HandleMovement();
+        HandleActions();
+        UpdateAnimationState();
+    }
+
+    protected virtual void HandleMovement()
+    {
+        float inputX = Managers.Input.MoveInput.x;
 
         // Swap direction of sprite depending on walk direction
         if (inputX > 0)
@@ -46,7 +82,6 @@ public class Player1Controller : PlayerController
             SpriteRenderer.flipX = false;
             m_facingDirection = 1;
         }
-
         else if (inputX < 0)
         {
             SpriteRenderer.flipX = true;
@@ -56,31 +91,17 @@ public class Player1Controller : PlayerController
         // Move
         if (!m_rolling)
         {
-            //print(this.transform.position + " " + inputX * m_speed +" "+ _rigidbody2D.linearVelocity);
-            this.transform.Translate(new Vector2(inputX,0) * m_speed * Time.deltaTime);
+            transform.Translate(new Vector2(inputX, 0) * m_speed * Time.deltaTime);
         }
 
-        //Set AirSpeed in animator
+        // Set AirSpeed in animator
         Animator.SetFloat("AirSpeedY", Rigidbody2D.linearVelocity.y);
+    }
 
-        // -- Handle Animations --
-        //Wall Slide
-        m_isWallSliding = (m_wallSensorR1.State() && m_wallSensorR2.State()) || (m_wallSensorL1.State() && m_wallSensorL2.State());
-        Animator.SetBool("WallSlide", m_isWallSliding);
-
-        //Death
-        if (Input.GetKeyDown(KeyCode.E) && !m_rolling)
-        {
-            Animator.SetBool("noBlood", m_noBlood);
-            Animator.SetTrigger("Death");
-        }
-
-        //Hurt
-        else if (Input.GetKeyDown(KeyCode.Q) && !m_rolling)
-            Animator.SetTrigger("Hurt");
-
-        //Attack
-        else if (Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling)
+    protected virtual void HandleActions()
+    {
+        // Attack
+        if (Managers.Input.IsAttackPressed && m_timeSinceAttack > 0.25f && !m_rolling)
         {
             m_currentAttack++;
 
@@ -100,25 +121,26 @@ public class Player1Controller : PlayerController
         }
 
         // Block
-        else if (Input.GetMouseButtonDown(1) && !m_rolling)
+        if (Managers.Input.IsDefensePressed && !m_rolling)
         {
             Animator.SetTrigger("Block");
             Animator.SetBool("IdleBlock", true);
         }
-
-        else if (Input.GetMouseButtonUp(1))
+        else if (!Managers.Input.IsDefensePressed)
+        {
             Animator.SetBool("IdleBlock", false);
+        }
 
         // Roll
-        else if (Input.GetKeyDown(KeyCode.LeftShift) && !m_rolling && !m_isWallSliding)
+        if (Managers.Input.IsRollingPressed && !m_rolling && !m_isWallSliding)
         {
             m_rolling = true;
             Animator.SetTrigger("Roll");
             Rigidbody2D.linearVelocity = new Vector2(m_facingDirection * m_rollForce, Rigidbody2D.linearVelocity.y);
         }
 
-        //Jump
-        else if (Input.GetKeyDown(KeyCode.Space) && m_grounded && !m_rolling)
+        // Jump
+        if (Managers.Input.IsJumpingPressed && m_grounded && !m_rolling)
         {
             Animator.SetTrigger("Jump");
             m_grounded = false;
@@ -126,16 +148,22 @@ public class Player1Controller : PlayerController
             Rigidbody2D.linearVelocity = new Vector2(Rigidbody2D.linearVelocity.x, m_jumpForce);
             m_groundSensor.Disable(0.2f);
         }
+    }
 
-        //Run
-        else if (Mathf.Abs(inputX) > Mathf.Epsilon)
+    protected virtual void UpdateAnimationState()
+    {
+        //Wall Slide
+        m_isWallSliding = (m_wallSensorR1.State() && m_wallSensorR2.State()) || (m_wallSensorL1.State() && m_wallSensorL2.State());
+        Animator.SetBool("WallSlide", m_isWallSliding);
+
+        // Run
+        if (Mathf.Abs(Managers.Input.MoveInput.x) > Mathf.Epsilon)
         {
             // Reset timer
             m_delayToIdle = 0.05f;
             Animator.SetInteger("AnimState", 1);
         }
-
-        //Idle
+        // Idle
         else
         {
             // Prevents flickering transitions to idle
